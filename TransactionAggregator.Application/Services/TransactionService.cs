@@ -50,7 +50,7 @@ namespace TransactionAggregator.Application.Services
 						}).ToList();
 			}
 
-			if (cacheKey is not null)
+			if (cacheKey != null)
 			{
 				return await _cacheService.ExecuteWithCache(cacheKey, GetDataAsync, expiration);
 			}
