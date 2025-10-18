@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Caching.Hybrid;
+using TransactionAggregator.Application.Interfaces;
 
 namespace TransactionAggregator.Infrastructure.Caching
 {
-	public class CacheService
+	public class CacheService: ICacheService
 	{
 		private readonly HybridCache _cache;
 		public CacheService(HybridCache cache)

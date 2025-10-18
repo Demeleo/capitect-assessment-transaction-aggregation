@@ -6,6 +6,7 @@ using TransactionAggregator.Infrastructure.Vendors;
 using TransactionAggregator.Infrastructure.Vendors.DataGenerator;
 using Microsoft.EntityFrameworkCore;
 using TransactionAggregator.Domain.Interfaces;
+using TransactionAggregator.Infrastructure.Caching;
 
 namespace TransactionAggregator.Infrastructure
 {
