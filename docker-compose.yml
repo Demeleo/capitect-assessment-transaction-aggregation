@@ -1,0 +1,29 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "97497fskdnfldskbf!!!!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    networks:
+      - transactions-network
+
+  aggregator-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aggregator-api
+    depends_on:
+      - sqlserver
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TransactionAggregatorDb;User Id=sa;Password=97497fskdnfldskbf!!!!;TrustServerCertificate=True
+    ports:
+      - "8080:8080"
+    networks:
+      - transactions-network
+
+networks:
+  transactions-network:
+    driver: bridge
