@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using TransactionAggregator.Application.DTOs;
 using TransactionAggregator.Application.Interfaces;
@@ -12,6 +13,7 @@ public class TransactionServiceTests
 {
 	private Mock<ITransactionRepository> _repositoryMock;
 	private Mock<ICacheService> _cacheMock;
+	private Mock<ILogger<TransactionService>> _loggerMock;
 	private TransactionService _service;
 
 	[SetUp]
@@ -19,7 +21,8 @@ public class TransactionServiceTests
 	{
 		_repositoryMock = new Mock<ITransactionRepository>();
 		_cacheMock = new Mock<ICacheService>();
-		_service = new TransactionService(_repositoryMock.Object, _cacheMock.Object);
+		_loggerMock = new Mock<ILogger<TransactionService>>();
+		_service = new TransactionService(_repositoryMock.Object, _cacheMock.Object, _loggerMock.Object);
 	}
 
 	[Test]
