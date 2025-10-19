@@ -14,8 +14,8 @@ services:
     image: otel/opentelemetry-collector-contrib:latest
     container_name: otel-collector
     volumes:
-      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
-    command: ["--config=/etc/otel-collector-config.yml"]
+      - "./otel-collector-config.yml:/etc/otel-config/otel-collector-config.yml"
+    command: ["--config=/etc/otel-config/otel-collector-config.yml"]
     ports:
       - "4317:4317"   # OTLP gRPC
       - "4318:4318"   # OTLP HTTP
@@ -28,7 +28,8 @@ services:
     container_name: jaeger
     ports:
       - "16686:16686"  # Jaeger UI
-      - "14250:14250"  # gRPC collector endpoint
+      - "14250:14250"  # OTLP gRPC endpoint
+      - "14268:14268"  # OTLP HTTP endpoint
     networks:
       - transactions-network
 
@@ -36,7 +37,7 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
     ports:
       - "9090:9090"
     networks:
@@ -61,6 +62,7 @@ services:
       - sqlserver
     environment:
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TransactionAggregatorDb;User Id=sa;Password=97497fskdnfldskbf!!!!;TrustServerCertificate=True
+      - Telemetry__OtlpEndpoint=http://otel-collector:4317
       - Vendors__DefaultTimeoutSeconds=60
       - Vendors__DefaultRetryCount=5
       - Vendors__VendorA__BaseUrl=http://localhost:9000/
@@ -69,7 +71,6 @@ services:
       - "5000:5000"
     networks:
       - transactions-network
-
 
 networks:
   transactions-network:
