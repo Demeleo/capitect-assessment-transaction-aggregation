@@ -72,10 +72,16 @@ namespace TransactionAggregator.Api.Middleware
 				activity.SetTag("otel.status_code", statusCode);
 				activity.SetTag("error", true);
 				activity.AddException(exception);
+
+				var traceId = activity.TraceId;
+				problem.Extensions["traceId"] = traceId;
+				problem.Extensions["requestId"] = context.TraceIdentifier;
 			}
 
 			context.Response.ContentType = "application/problem+json";
 			context.Response.StatusCode = statusCode;
+
+			
 
 			await context.Response.WriteAsJsonAsync(problem);
 		}

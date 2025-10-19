@@ -20,7 +20,7 @@ services:
     environment:
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TransactionAggregatorDb;User Id=sa;Password=97497fskdnfldskbf!!!!;TrustServerCertificate=True
     ports:
-      - "8080:8080"
+      - "5000:5000"
     networks:
       - transactions-network
 

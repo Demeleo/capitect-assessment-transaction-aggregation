@@ -3,6 +3,7 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using TransactionAggregator.Api.Middleware;
 using TransactionAggregator.Api.Workers;
 using TransactionAggregator.Application;
 using TransactionAggregator.Infrastructure;
@@ -67,14 +68,18 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-	app.MapOpenApi();
-	app.UseSwagger();
-	app.UseSwaggerUI();
-}
+app.UseMiddleware<ExceptionMiddleware>();
 
-app.UseHttpsRedirection();
+//typically this would be enabled only in development environment
+//for the purpose of this assessment we enable it always
+//if (app.Environment.IsDevelopment())
+//{
+app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI();
+//}
+
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
@@ -85,5 +90,5 @@ using (var scope = app.Services.CreateScope())
 	var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 	db.Database.Migrate();
 }
-
+app.Urls.Add("http://0.0.0.0:5000");
 app.Run();
