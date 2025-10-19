@@ -2,11 +2,11 @@
 
 namespace TransactionAggregator.Api.Workers
 {
-	public class TransactionAggregationWorker : BackgroundService
+	public class TransactionDataGenerator : BackgroundService
 	{
 		private readonly IServiceScopeFactory _scopeFactory;
-		private readonly ILogger<TransactionAggregationWorker> _logger;
-		public TransactionAggregationWorker(IServiceScopeFactory scopeFactory, ILogger<TransactionAggregationWorker> logger)
+		private readonly ILogger<TransactionDataGenerator> _logger;
+		public TransactionDataGenerator(IServiceScopeFactory scopeFactory, ILogger<TransactionDataGenerator> logger)
 		{
 			_scopeFactory = scopeFactory;
 			_logger = logger;
@@ -14,7 +14,7 @@ namespace TransactionAggregator.Api.Workers
 
 		protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 		{
-			_logger.LogInformation("Transaction aggregation worker started.");
+			_logger.LogInformation("Transaction data generator started.");
 			using var scope = _scopeFactory.CreateScope();
 
 			var transactionService = scope.ServiceProvider.GetRequiredService<ITransactionsRetrievalService>();
@@ -23,13 +23,13 @@ namespace TransactionAggregator.Api.Workers
 			{
 				try
 				{
-					_logger.LogInformation("Running aggregation job...");
+					_logger.LogInformation("Generating new set of transactions...");
 					await transactionService.RetrieveAllTransactionDataFromVendors(cancellationToken);
-					_logger.LogInformation("Aggregation job completed successfully.");
+					_logger.LogInformation("Transactions generated successfully.");
 				}
 				catch (Exception ex)
 				{
-					_logger.LogError(ex, "Error during aggregation job.");
+					_logger.LogError(ex, "Error during transactions data generation.");
 				}
 
 				await Task.Delay(TimeSpan.FromSeconds(15), cancellationToken);

@@ -59,7 +59,7 @@ builder.Logging.AddOpenTelemetry(logBuilder =>
 
 builder.Services.AddInfrastructureServices(builder.Configuration.GetConnectionString("DefaultConnection")!);
 builder.Services.AddApplicationServices();
-builder.Services.AddHostedService<TransactionAggregationWorker>();
+builder.Services.AddHostedService<TransactionDataGenerator>();
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
