@@ -9,6 +9,7 @@ namespace TransactionAggregator.Application
 		public static IServiceCollection AddApplicationServices(this IServiceCollection services)
 		{
 			services.AddScoped<ITransactionsRetrievalService, TransactionsRetrievalService>();
+			services.AddScoped<ICustomerService, CustomerService>();
 			services.AddScoped<ITransactionService, TransactionService>();
 			services.AddScoped<ITransactionAggregationService, TransactionAggregationService>();
 			return services;

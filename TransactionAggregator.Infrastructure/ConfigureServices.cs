@@ -55,6 +55,7 @@ namespace TransactionAggregator.Infrastructure
 			services.AddDbContext<AppDbContext>(options =>
 						options.UseSqlServer(connectionString));
 
+			services.AddScoped<ICustomerRepository, CustomerRepository>();
 			services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 			services.AddHttpClient("VendorA", (sp, client) =>

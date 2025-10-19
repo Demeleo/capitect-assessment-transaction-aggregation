@@ -9,26 +9,26 @@ using TransactionAggregator.Application.Telemetry;
 
 namespace TransactionAggregator.Application.Services
 {
-	public class TransactionService : ITransactionService
+	public class CustomerService : ICustomerService
 	{
-		private readonly ITransactionRepository _transactionRepository;
+		private readonly ICustomerRepository _customerRepository;
 		private readonly ICacheService _cacheService;
-		private readonly ILogger<TransactionService> _logger;
-		public TransactionService(ITransactionRepository transactionRepository, ICacheService cacheService, ILogger<TransactionService> logger)
+		private readonly ILogger<CustomerService> _logger;
+		public CustomerService(ICustomerRepository customerRepository, ICacheService cacheService, ILogger<CustomerService> logger)
 		{
-			_transactionRepository = transactionRepository;
+			_customerRepository = customerRepository;
 			_cacheService = cacheService;
 			_logger = logger;
 		}
 
-		public async Task<IEnumerable<TransactionDto>> GetFilteredTransactionsAsync(TransactionQueryParameters filters, CancellationToken cancellationToken)
+		public async Task<IEnumerable<TransactionDto>> GetTransactions(string customerId, CustomerQueryParameters filters, CancellationToken cancellationToken)
 		{
-			using var activity = ApplicationTelemetry.ActivitySource.StartActivity("GetFilteredTransactions", ActivityKind.Server);
+			using var activity = ApplicationTelemetry.ActivitySource.StartActivity("GetCustomerTransactions", ActivityKind.Server);
 			activity?.SetTag("filter", filters);
 
 			var errors = new Dictionary<string, string[]>();
 			if (filters.Page < 1) errors["Page"] = ["Page must be at least 1."];
-			if (filters.PageSize < 1 || filters.PageSize > 500) errors["PageSize"] = ["PageSize must be between 2 and 500."];
+			if (filters.PageSize < 2 || filters.PageSize > 500) errors["PageSize"] = ["PageSize must be between 2 and 500."];
 
 			if (errors.Count > 0)
 			{
@@ -41,19 +41,10 @@ namespace TransactionAggregator.Application.Services
 
 			async Task<IEnumerable<TransactionDto>> GetDataAsync()
 			{
-				var transactions = await _transactionRepository.GetTransactionsByDateRangeAsync(filters.ProcessedFrom, filters.ProcessedTo, cancellationToken);
-
-				if (!string.IsNullOrEmpty(filters.CustomerId))
-					transactions = transactions.Where(t => t.CustomerId == filters.CustomerId);
+				var transactions = await _customerRepository.GetTransactionsByDateRangeAsync(customerId, filters.ProcessedFrom, filters.ProcessedTo, cancellationToken);
 
 				if (!string.IsNullOrEmpty(filters.AccountId))
 					transactions = transactions.Where(t => t.AccountId == filters.AccountId);
-
-				if (!string.IsNullOrEmpty(filters.Category))
-					transactions = transactions.Where(t => t.Category == filters.Category);
-
-				if (!string.IsNullOrEmpty(filters.Merchant))
-					transactions = transactions.Where(t => t.Merchant == filters.Merchant);
 
 				return transactions
 						.Skip((filters.Page - 1) * filters.PageSize)
@@ -76,7 +67,6 @@ namespace TransactionAggregator.Application.Services
 			}
 
 			return await GetDataAsync();
-
 		}
 	}
 }
