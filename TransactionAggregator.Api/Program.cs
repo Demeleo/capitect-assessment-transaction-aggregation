@@ -7,6 +7,7 @@ using TransactionAggregator.Api.Middleware;
 using TransactionAggregator.Api.Workers;
 using TransactionAggregator.Application;
 using TransactionAggregator.Infrastructure;
+using TransactionAggregator.Infrastructure.Configuration;
 using TransactionAggregator.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,9 +59,12 @@ builder.Logging.AddOpenTelemetry(logBuilder =>
 	// });
 });
 
+builder.Services.Configure<VendorSettings>(
+		builder.Configuration.GetSection("Vendors"));
+
 builder.Services.AddInfrastructureServices(builder.Configuration.GetConnectionString("DefaultConnection")!);
 builder.Services.AddApplicationServices();
-builder.Services.AddHostedService<TransactionDataGenerator>();
+builder.Services.AddHostedService<TransactionDataWorker>();
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
@@ -90,5 +94,11 @@ using (var scope = app.Services.CreateScope())
 	var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 	db.Database.Migrate();
 }
-app.Urls.Add("http://0.0.0.0:5000");
+if (app.Environment.IsDevelopment())
+{
+	app.Urls.Add("https://0.0.0.0:7297");
+	app.Urls.Add("http://0.0.0.0:5280");
+}
+else
+	app.Urls.Add("http://0.0.0.0:5000");
 app.Run();

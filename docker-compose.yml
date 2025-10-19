@@ -19,6 +19,10 @@ services:
       - sqlserver
     environment:
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TransactionAggregatorDb;User Id=sa;Password=97497fskdnfldskbf!!!!;TrustServerCertificate=True
+      - Vendors__DefaultTimeoutSeconds=60
+      - Vendors__DefaultRetryCount=5
+      - Vendors__VendorA__BaseUrl=http://localhost:9000/
+      - Vendors__VendorB__BaseUrl=http://localhost:9001/
     ports:
       - "5000:5000"
     networks:

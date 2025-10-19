@@ -2,11 +2,11 @@
 
 namespace TransactionAggregator.Api.Workers
 {
-	public class TransactionDataGenerator : BackgroundService
+	public class TransactionDataWorker : BackgroundService
 	{
 		private readonly IServiceScopeFactory _scopeFactory;
-		private readonly ILogger<TransactionDataGenerator> _logger;
-		public TransactionDataGenerator(IServiceScopeFactory scopeFactory, ILogger<TransactionDataGenerator> logger)
+		private readonly ILogger<TransactionDataWorker> _logger;
+		public TransactionDataWorker(IServiceScopeFactory scopeFactory, ILogger<TransactionDataWorker> logger)
 		{
 			_scopeFactory = scopeFactory;
 			_logger = logger;

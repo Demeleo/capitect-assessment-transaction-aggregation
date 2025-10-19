@@ -1,30 +1,56 @@
-﻿using TransactionAggregator.Application.DTOs;
+﻿using Bogus.DataSets;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.Buffers.Text;
+using System.Diagnostics;
+using System.Net.Http.Json;
+using System.Text.Json;
+using TransactionAggregator.Application.DTOs;
+using TransactionAggregator.Application.Exceptions;
+using TransactionAggregator.Application.Telemetry;
 using TransactionAggregator.Domain.Entities;
 using TransactionAggregator.Domain.Interfaces;
+using TransactionAggregator.Infrastructure.Configuration;
 using TransactionAggregator.Infrastructure.Vendors.DataGenerator;
 
 namespace TransactionAggregator.Infrastructure.Vendors
 {
 	public class VendorB : IFinancialVendor
 	{
-		private readonly GenerateCustomers _customers;
-		public string Name => "Vendor B";
+		private readonly HttpClient _client;
+		private readonly ILogger<VendorB> _logger;
+		private readonly VendorSettings _settings;
 
-		public VendorB(GenerateCustomers customers)
+		public VendorB(IHttpClientFactory httpClientFactory, ILogger<VendorB> logger, IOptions<VendorSettings> options)
 		{
-			_customers = customers;
+			_client = httpClientFactory.CreateClient("VendorB");
+			_logger = logger;
+			_settings = options?.Value ?? new VendorSettings();
 		}
 
 		public async Task<IEnumerable<Transaction>> GetTransactionsAsync(CancellationToken cancellationToken = default)
 		{
-			await Task.Delay(300, cancellationToken);
+			using var activity = ApplicationTelemetry.ActivitySource.StartActivity("VendorB.GetTransactions", ActivityKind.Server);
+			try
+			{
+				activity?.SetTag("vendor.name", "Vendor B");
 
-			var customers = _customers.GetCustomers();
+				var baseUrl = _settings?.VendorB?.BaseUrl;
+				var endpoint = "/transactions";
 
-			var transactions = customers.SelectMany(c =>
-					GenerateTransactions.Generate(Name, c, Random.Shared.Next(1, 5)));
-
-			return transactions;
+				_logger.LogInformation("VendorB: calling {Base}{Endpoint}", baseUrl, endpoint);
+				using var response = await _client.GetAsync("/transactions", cancellationToken);
+				response.EnsureSuccessStatusCode();
+				var transactions = await response.Content.ReadFromJsonAsync<IEnumerable<Transaction>>(cancellationToken: cancellationToken)
+					?? [];
+				return transactions;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "VendorB unexpected error");
+				return [];
+			}
 		}
 	}
 }
