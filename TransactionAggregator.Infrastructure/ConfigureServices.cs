@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Metrics;
@@ -21,8 +23,12 @@ namespace TransactionAggregator.Infrastructure
 {
 	public static class ConfigureServices
 	{
-		public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, string connectionString)
+		public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
 		{
+			var isDevelopment = env.IsDevelopment();
+			var connectionString = configuration.GetConnectionString("DefaultConnection");
+			var otlpEndpoint = configuration.GetValue<string>("Telemetry:OtlpEndpoint");
+
 			services.AddOpenTelemetry()
 				.WithTracing(tracing =>
 				{
@@ -42,11 +48,18 @@ namespace TransactionAggregator.Infrastructure
 					{
 						options.RecordException = true;
 					});
-				})
-				.WithMetrics(metrics =>
-				{
-					metrics.AddRuntimeInstrumentation();
-					metrics.AddHttpClientInstrumentation();
+
+					if (isDevelopment || string.IsNullOrWhiteSpace(otlpEndpoint))
+					{
+						tracing.AddConsoleExporter();
+					}
+					else
+					{
+						tracing.AddOtlpExporter(options =>
+						{
+							options.Endpoint = new Uri(otlpEndpoint);
+						});
+					}
 				});
 
 			services.AddHybridCache();

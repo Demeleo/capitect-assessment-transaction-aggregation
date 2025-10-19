@@ -15,6 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 var serviceName = "TransactionAggregator.Api";
 var serviceVersion = "1.0.0.0";
 
+var otlpEndpoint = builder.Configuration.GetValue<string>("Telemetry:OtlpEndpoint");
+var isDevelopment = builder.Environment.IsDevelopment();
+
 builder.Services.AddOpenTelemetry()
 		.ConfigureResource(rb => rb.AddService(serviceName, serviceVersion: serviceVersion)
 			.AddTelemetrySdk()
@@ -23,15 +26,35 @@ builder.Services.AddOpenTelemetry()
 		{
 			t.AddAspNetCoreInstrumentation()
 			 .AddHttpClientInstrumentation()
-			 .AddSqlClientInstrumentation()
-			 .AddConsoleExporter();
+			 .AddSqlClientInstrumentation();
+			if (isDevelopment || string.IsNullOrWhiteSpace(otlpEndpoint))
+			{
+				t.AddConsoleExporter();
+			}
+			else
+			{
+				t.AddOtlpExporter(options =>
+				{
+					options.Endpoint = new Uri(otlpEndpoint);
+				});
+			}
 		})
 		.WithMetrics(m =>
 		{
 			m.AddAspNetCoreInstrumentation()
 			 .AddHttpClientInstrumentation()
-			 .AddRuntimeInstrumentation()
-			 .AddConsoleExporter();
+			 .AddRuntimeInstrumentation();
+			if (isDevelopment || string.IsNullOrWhiteSpace(otlpEndpoint))
+			{
+				m.AddConsoleExporter();
+			}
+			else
+			{
+				m.AddOtlpExporter(options =>
+				{
+					options.Endpoint = new Uri(otlpEndpoint);
+				});
+			}
 		});
 
 builder.Logging.ClearProviders(); // optional: remove default Console/EventSource providers
@@ -49,20 +72,24 @@ builder.Logging.AddOpenTelemetry(logBuilder =>
 	logBuilder.IncludeFormattedMessage = true;
 	logBuilder.ParseStateValues = true;
 
-	// Export to console for now
-	logBuilder.AddConsoleExporter();
 
-	// For production, you could add an OTLP exporter (e.g. to Grafana or Jaeger):
-	// logBuilder.AddOtlpExporter(options =>
-	// {
-	//     options.Endpoint = new Uri("http://otel-collector:4317");
-	// });
+	if (isDevelopment || string.IsNullOrWhiteSpace(otlpEndpoint))
+	{
+		logBuilder.AddConsoleExporter();
+	}
+	else
+	{
+		logBuilder.AddOtlpExporter(options =>
+		{
+			options.Endpoint = new Uri(otlpEndpoint);
+		});
+	}
 });
 
 builder.Services.Configure<VendorSettings>(
 		builder.Configuration.GetSection("Vendors"));
 
-builder.Services.AddInfrastructureServices(builder.Configuration.GetConnectionString("DefaultConnection")!);
+builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
 builder.Services.AddApplicationServices();
 builder.Services.AddHostedService<TransactionDataWorker>();
 builder.Services.AddControllers();
