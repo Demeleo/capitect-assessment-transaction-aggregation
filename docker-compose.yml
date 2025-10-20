@@ -10,48 +10,48 @@ services:
     networks:
       - transactions-network
 
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
-    container_name: otel-collector
-    volumes:
-      - "./otel-collector-config.yml:/etc/otel-config/otel-collector-config.yml"
-    command: ["--config=/etc/otel-config/otel-collector-config.yml"]
-    ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "55681:55681" # Prometheus metrics scrape endpoint
-    networks:
-      - transactions-network
+  # otel-collector:
+  #   image: otel/opentelemetry-collector-contrib:latest
+  #   container_name: otel-collector
+  #   volumes:
+  #     - "./otel-collector-config.yml:/etc/otel-config/otel-collector-config.yml"
+  #   command: ["--config=/etc/otel-config/otel-collector-config.yml"]
+  #   ports:
+  #     - "4317:4317"   # OTLP gRPC
+  #     - "4318:4318"   # OTLP HTTP
+  #     - "55681:55681" # Prometheus metrics scrape endpoint
+  #   networks:
+  #     - transactions-network
 
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    container_name: jaeger
-    ports:
-      - "16686:16686"  # Jaeger UI
-      - "14250:14250"  # OTLP gRPC endpoint
-      - "14268:14268"  # OTLP HTTP endpoint
-    networks:
-      - transactions-network
+  # jaeger:
+  #   image: jaegertracing/all-in-one:latest
+  #   container_name: jaeger
+  #   ports:
+  #     - "16686:16686"  # Jaeger UI
+  #     - "14250:14250"  # OTLP gRPC endpoint
+  #     - "14268:14268"  # OTLP HTTP endpoint
+  #   networks:
+  #     - transactions-network
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
-    ports:
-      - "9090:9090"
-    networks:
-      - transactions-network
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   volumes:
+  #     - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+  #   ports:
+  #     - "9090:9090"
+  #   networks:
+  #     - transactions-network
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    ports:
-      - "3000:3000"
-    networks:
-      - transactions-network
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: grafana
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - transactions-network
 
   aggregator-api:
     build:
@@ -62,7 +62,7 @@ services:
       - sqlserver
     environment:
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TransactionAggregatorDb;User Id=sa;Password=97497fskdnfldskbf!!!!;TrustServerCertificate=True
-      - Telemetry__OtlpEndpoint=http://otel-collector:4317
+      - Telemetry__OtlpEndpoint=
       - Vendors__DefaultTimeoutSeconds=60
       - Vendors__DefaultRetryCount=5
       - Vendors__VendorA__BaseUrl=http://localhost:9000/
