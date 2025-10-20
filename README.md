@@ -70,8 +70,10 @@ The solution includes a ready-to-use `docker-compose.yml` that spins up both SQL
 From the solution root, run:
 
 ```bash
-docker compose up --build
+docker compose up --build -d
+
 
 The api is exposed using swagger and should be available on http://localhost:5000/swagger/index.html
+
 
 
