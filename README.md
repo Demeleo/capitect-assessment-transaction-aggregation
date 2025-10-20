@@ -69,6 +69,7 @@ The solution includes a ready-to-use `docker-compose.yml` that spins up both SQL
 
 From the solution root, run:
 
+```markdown
 ```bash
 docker compose up --build -d
 
